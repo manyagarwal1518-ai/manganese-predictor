@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manganese Reserve Predictor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      background: #000a05;
+      color: #fff;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ── Animated canvas behind everything ── */
+    #bgCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    /* ── Page content ── */
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 36px;
+      padding: 60px 24px;
+      max-width: 860px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    /* badge */
+    .badge {
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #3dffaa;
+      background: rgba(61,255,170,0.1);
+      border: 1px solid rgba(61,255,170,0.35);
+      border-radius: 30px;
+      padding: 6px 20px;
+    }
+
+    /* hero title */
+    .hero-title {
+      font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+      font-weight: 900;
+      letter-spacing: 2px;
+      line-height: 1.15;
+      color: #fff;
+      text-shadow: 0 0 40px rgba(61,255,150,0.4), 0 2px 10px rgba(0,0,0,0.8);
+    }
+
+    /* tagline */
+    .tagline {
+      font-size: 1.05rem;
+      color: #90e8b8;
+      letter-spacing: 0.4px;
+      margin-top: -18px;
+    }
+
+    /* glass card */
+    .glass-card {
+      background: rgba(0, 30, 15, 0.55);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(61,255,140,0.28);
+      border-radius: 18px;
+      padding: 30px 36px;
+      font-size: 1.03rem;
+      line-height: 1.9;
+      color: #cff0dd;
+      box-shadow: 0 0 36px rgba(61,255,140,0.1), 0 8px 40px rgba(0,0,0,0.5);
+      text-align: left;
+    }
+    .glass-card strong { color: #3dffaa; }
+
+    /* stats row */
+    .stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .stat-box {
+      background: rgba(0,30,15,0.5);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(61,255,140,0.22);
+      border-radius: 14px;
+      padding: 18px 28px;
+      min-width: 150px;
+      box-shadow: 0 0 20px rgba(61,255,140,0.08);
+    }
+    .stat-box .num {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #3dffaa;
+    }
+    .stat-box .lbl {
+      font-size: 0.78rem;
+      color: #90e8b8;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* start button */
+    .btn-start {
+      padding: 18px 72px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #000;
+      background: linear-gradient(135deg, #00e676, #1de9b6);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      box-shadow: 0 4px 24px rgba(0,230,118,0.45);
+    }
+    .btn-start:hover {
+      transform: translateY(-7px);
+      box-shadow: 0 14px 44px rgba(0,230,118,0.65), 0 0 70px rgba(29,233,182,0.3);
+    }
+    .btn-start:active {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,230,118,0.5);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Animated background canvas ── -->
+<canvas id="bgCanvas"></canvas>
+
+<div class="container">
+
+  <div class="badge">🛰️ AI · Satellite · Geospatial Mining</div>
+
+  <h1 class="hero-title">Manganese Reserve<br>Predictor</h1>
+
+  <p class="tagline">Predict Manganese Reserve Using AI & Satellites</p>
+
+  <div class="glass-card">
+    This application leverages <strong>Artificial Intelligence</strong> and
+    <strong>satellite imagery</strong> to accurately predict
+    <strong>manganese mineral reserves</strong> and identify potential
+    <strong>production shortfalls</strong>. By analysing geological patterns,
+    remote-sensing data, and historical mining records, the predictor delivers
+    actionable insights for industry professionals and policymakers to optimise
+    resource planning and supply-chain management.
+  </div>
+
+  <!-- quick stats -->
+  <div class="stats">
+    <div class="stat-box">
+      <div class="num">94%</div>
+      <div class="lbl">Prediction Accuracy</div>
+    </div>
+    <div class="stat-box">
+      <div class="num">120+</div>
+      <div class="lbl">Reserve Sites</div>
+    </div>
+    <div class="stat-box">
+      <div class="num">18</div>
+      <div class="lbl">Satellites Used</div>
+    </div>
+  </div>
+
+  <button class="btn-start" id="startBtn">&#9654;&nbsp; Start Prediction</button>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CANVAS BACKGROUND
+   Draws:
+    1. Deep-space starfield
+    2. Earth globe (green land + blue ocean, with grid)
+    3. Manganese deposit hot-spots (pulsing orange dots on land)
+    4. Orbiting satellites with solar panels
+    5. Dashed signal beams from satellites to Earth surface
+   ═══════════════════════════════════════════════ */
+const canvas = document.getElementById('bgCanvas');
+const ctx    = canvas.getContext('2d');
+
+let W, H, cx, cy, R;      // canvas dims, earth centre & radius
+
+/* ── Resize ── */
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  cx = W * 0.72;            // Earth sits right-of-centre
+  cy = H * 0.52;
+  R  = Math.min(W, H) * 0.28;
+}
+resize();
+window.addEventListener('resize', resize);
+
+/* ── Stars ── */
+const STARS = Array.from({length: 280}, () => ({
+  x: Math.random(),
+  y: Math.random(),
+  r: Math.random() * 1.4 + 0.3,
+  a: Math.random()
+}));
+
+/* ── Manganese deposit sites (angle from centre, scaled to globe) ── */
+const DEPOSITS = [
+  { lat:  0.28, lon:  0.18, label: 'S. Africa'   },
+  { lat:  0.38, lon:  0.55, label: 'Australia'   },
+  { lat:  0.20, lon:  0.35, label: 'Gabon'        },
+  { lat:  0.55, lon:  0.30, label: 'Ukraine'      },
+  { lat:  0.60, lon:  0.65, label: 'India'        },
+  { lat:  0.45, lon:  0.80, label: 'China'        },
+  { lat:  0.30, lon: -0.10, label: 'Brazil'       },
+].map(d => ({
+  ...d,
+  // convert normalised lat/lon to 3-D point projected on circle
+  // lat: 0=south, 1=north  lon: 0=left, 1=right
+  px: (d.lon - 0.5) * 1.6,   // -0.8 … +0.8
+  py: (0.5 - d.lat) * 1.6,
+  pulse: Math.random() * Math.PI * 2
+}));
+
+/* ── Satellites ── */
+class Satellite {
+  constructor(orbitR, speed, startAngle, incline) {
+    this.orbitR = orbitR;     // multiple of Earth radius
+    this.angle  = startAngle;
+    this.speed  = speed;
+    this.incline = incline;   // tilt of orbit (0 = equatorial)
+  }
+  update(dt) { this.angle += this.speed * dt; }
+  pos(earthCx, earthCy, earthR) {
+    const r = earthR * this.orbitR;
+    const x = earthCx + Math.cos(this.angle) * r;
+    const y = earthCy + Math.sin(this.angle) * r * this.incline;
+    return { x, y };
+  }
+}
+
+const satellites = [
+  new Satellite(1.55, 0.55, 0.0,  0.40),
+  new Satellite(1.75, 0.38, 2.1,  0.60),
+  new Satellite(1.40, 0.70, 4.2,  0.30),
+  new Satellite(1.90, 0.28, 1.1,  0.80),
+];
+
+/* ── Draw helpers ── */
+function drawStars(t) {
+  STARS.forEach(s => {
+    const twinkle = 0.5 + 0.5 * Math.sin(t * 0.8 + s.a * 10);
+    ctx.beginPath();
+    ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200,255,220,${0.3 + 0.7 * twinkle})`;
+    ctx.fill();
+  });
+}
+
+function drawEarth(t) {
+  /* ocean */
+  const ocean = ctx.createRadialGradient(cx - R*0.3, cy - R*0.3, R*0.05, cx, cy, R);
+  ocean.addColorStop(0, '#0a3d1e');
+  ocean.addColorStop(0.5, '#052b14');
+  ocean.addColorStop(1, '#01100a');
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = ocean;
+  ctx.fill();
+
+  /* globe grid lines */
+  ctx.save();
+  ctx.clip();
+  ctx.strokeStyle = 'rgba(0,200,80,0.12)';
+  ctx.lineWidth = 0.8;
+  // latitude rings
+  for (let i = 1; i < 7; i++) {
+    const ry = (i / 7 - 0.5) * R * 1.8;
+    const rx = Math.sqrt(Math.max(0, R*R - ry*ry));
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + ry, rx, rx * 0.22, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  // longitude lines (animating slowly)
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI + t * 0.04;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, R * Math.abs(Math.cos(a)), R, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  /* continent-like patches */
+  const landColor = 'rgba(0,180,80,0.22)';
+  [
+    // [dx_ratio, dy_ratio, rx_ratio, ry_ratio]
+    [-0.38, -0.05, 0.18, 0.28],   // Africa
+    [ 0.10, -0.12, 0.20, 0.22],   // Asia
+    [-0.05,  0.25, 0.14, 0.18],   // S. America hint
+    [ 0.35,  0.10, 0.13, 0.16],   // Australia
+    [-0.28, -0.30, 0.16, 0.12],   // Europe
+    [-0.45,  0.05, 0.10, 0.24],   // N. America
+  ].forEach(([dx,dy,rx,ry]) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI*2);
+    ctx.clip();
+    ctx.beginPath();
+    ctx.ellipse(cx + dx*R, cy + dy*R, rx*R, ry*R, 0, 0, Math.PI*2);
+    ctx.fillStyle = landColor;
+    ctx.fill();
+    ctx.restore();
+  });
+
+  /* globe rim glow */
+  const rim = ctx.createRadialGradient(cx, cy, R * 0.82, cx, cy, R * 1.08);
+  rim.addColorStop(0, 'rgba(0,0,0,0)');
+  rim.addColorStop(0.7, 'rgba(0,180,80,0.08)');
+  rim.addColorStop(1,   'rgba(0,255,120,0.28)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, R * 1.08, 0, Math.PI * 2);
+  ctx.fillStyle = rim;
+  ctx.fill();
+
+  /* atmosphere haze */
+  const atm = ctx.createRadialGradient(cx, cy, R*0.9, cx, cy, R*1.18);
+  atm.addColorStop(0,   'rgba(0,255,100,0.06)');
+  atm.addColorStop(0.5, 'rgba(0,180,80,0.04)');
+  atm.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, R*1.18, 0, Math.PI*2);
+  ctx.fillStyle = atm;
+  ctx.fill();
+}
+
+function drawDeposits(t) {
+  DEPOSITS.forEach(d => {
+    // Skip if projected outside visible disc
+    const dist = Math.sqrt(d.px*d.px + d.py*d.py);
+    if (dist >= 0.85) return;
+
+    const x = cx + d.px * R;
+    const y = cy + d.py * R;
+    const pulse = 0.5 + 0.5 * Math.sin(t * 2 + d.pulse);
+
+    // outer pulse ring
+    ctx.beginPath();
+    ctx.arc(x, y, 6 + pulse * 10, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(255,160,0,${0.15 + pulse * 0.25})`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // inner dot
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    const radGrad = ctx.createRadialGradient(x, y, 0, x, y, 4);
+    radGrad.addColorStop(0, '#ffee00');
+    radGrad.addColorStop(1, '#ff6600');
+    ctx.fillStyle = radGrad;
+    ctx.fill();
+
+    // Mn label
+    ctx.fillStyle = `rgba(255,220,100,${0.6 + pulse * 0.4})`;
+    ctx.font = 'bold 9px Segoe UI';
+    ctx.fillText('Mn', x + 6, y - 5);
+  });
+}
+
+function drawSatellite(pos, angle) {
+  ctx.save();
+  ctx.translate(pos.x, pos.y);
+  ctx.rotate(angle);
+
+  // body
+  ctx.fillStyle = '#c8e6c9';
+  ctx.fillRect(-8, -5, 16, 10);
+
+  // solar panels
+  ctx.fillStyle = '#1565c0';
+  ctx.fillRect(-26, -3, 15, 6);
+  ctx.fillRect( 11, -3, 15, 6);
+  ctx.strokeStyle = 'rgba(100,200,255,0.6)';
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(-26, -3, 15, 6);
+  ctx.strokeRect( 11, -3, 15, 6);
+
+  // dish
+  ctx.beginPath();
+  ctx.arc(0, -7, 5, Math.PI, Math.PI*2);
+  ctx.strokeStyle = '#aaa';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawSignalBeams(t) {
+  satellites.forEach((sat, i) => {
+    const pos   = sat.pos(cx, cy, R);
+    // each satellite targets one deposit (cyclic)
+    const dep   = DEPOSITS[i % DEPOSITS.length];
+    if (Math.sqrt(dep.px*dep.px + dep.py*dep.py) >= 0.85) return;
+
+    const tx = cx + dep.px * R;
+    const ty = cy + dep.py * R;
+
+    // animated dash offset
+    const dash  = (t * 60) % 24;
+    const alpha = 0.3 + 0.2 * Math.sin(t * 2 + i);
+
+    ctx.save();
+    ctx.setLineDash([8, 6]);
+    ctx.lineDashOffset = -dash;
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    ctx.quadraticCurveTo(cx, cy - R * 0.5, tx, ty);
+    ctx.strokeStyle = `rgba(61,255,170,${alpha})`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.restore();
+
+    // satellite glow dot
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(61,255,170,${0.6 + 0.4*Math.sin(t*3+i)})`;
+    ctx.fill();
+  });
+}
+
+function drawOrbitTrails() {
+  satellites.forEach(sat => {
+    const r = R * sat.orbitR;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, r, r * sat.incline, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(61,255,140,0.06)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 8]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+}
+
+/* ── Main loop ── */
+let last = 0;
+function frame(ts) {
+  const t  = ts / 1000;
+  const dt = t - last;
+  last = t;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // deep-space gradient bg
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H));
+  bg.addColorStop(0,   '#061a0e');
+  bg.addColorStop(0.5, '#030d07');
+  bg.addColorStop(1,   '#000000');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  drawStars(t);
+  drawOrbitTrails();
+  drawEarth(t);
+  drawDeposits(t);
+
+  satellites.forEach(s => s.update(dt));
+  drawSignalBeams(t);
+  satellites.forEach(s => {
+    const pos = s.pos(cx, cy, R);
+    drawSatellite(pos, s.angle + Math.PI / 2);
+  });
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  alert('Manganese Reserve Predictor starting…');
+});
+</script>
+
+</body>
+</html>
