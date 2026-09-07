@@ -3,493 +3,896 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Manganese Reserve Predictor</title>
+  <title>Manganese Reserve Predictor | Ministry of Mines, Government of India</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --saffron:   #FF9933;
+      --white:     #FFFFFF;
+      --navy:      #003087;
+      --green:     #138808;
+      --gold:      #C8A951;
+      --light-bg:  #F4F6FA;
+      --text-dark: #1A1A1A;
+      --text-mid:  #444;
+      --border:    #D0D5E1;
+      --header-bg: #003087;
+    }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Noto Sans', Arial, sans-serif;
+      background: var(--light-bg);
+      color: var(--text-dark);
       min-height: 100vh;
-      background: #000a05;
-      color: #fff;
-      overflow-x: hidden;
-      position: relative;
-    }
-
-    /* ── Animated canvas behind everything ── */
-    #bgCanvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-    }
-
-    /* ── Page content ── */
-    .container {
-      position: relative;
-      z-index: 1;
       display: flex;
       flex-direction: column;
+    }
+
+    /* ─── Skip link ─── */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: var(--navy);
+      color: #fff;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      z-index: 9999;
+      transition: top 0.2s;
+    }
+    .skip-link:focus { top: 0; }
+
+    /* ─── Top Utility Bar ─── */
+    .top-bar {
+      background: #1a1a2e;
+      color: #ccc;
+      font-size: 0.75rem;
+      padding: 5px 0;
+      border-bottom: 3px solid var(--saffron);
+    }
+    .top-bar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .top-bar a {
+      color: #ccc;
+      text-decoration: none;
+      margin-left: 14px;
+      font-size: 0.73rem;
+    }
+    .top-bar a:hover { color: var(--saffron); text-decoration: underline; }
+    .top-bar .accessibility a {
+      border: 1px solid #555;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+      font-size: 0.7rem;
+    }
+
+    /* ─── Tricolor Stripe ─── */
+    .tricolor-stripe {
+      height: 5px;
+      background: linear-gradient(to right,
+        var(--saffron) 0%, var(--saffron) 33.3%,
+        var(--white)   33.3%, var(--white)  66.6%,
+        var(--green)   66.6%, var(--green)  100%);
+    }
+
+    /* ─── Main Header ─── */
+    .site-header {
+      background: var(--header-bg);
+      padding: 18px 20px;
+      border-bottom: 4px solid var(--gold);
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      flex-wrap: wrap;
+    }
+
+    /* Ashoka Emblem SVG placeholder */
+    .emblem {
+      width: 72px;
+      height: 72px;
+      flex-shrink: 0;
+    }
+
+    .header-text { flex: 1; }
+    .header-text .ministry {
+      font-size: 0.8rem;
+      color: #b8c8e8;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .header-text h1 {
+      font-family: 'Noto Serif', Georgia, serif;
+      font-size: clamp(1.2rem, 2.8vw, 1.85rem);
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .header-text .subtitle {
+      font-size: 0.82rem;
+      color: #90aacc;
+      margin-top: 5px;
+      letter-spacing: 0.5px;
+    }
+
+    .header-logos {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .header-logos img { height: 48px; }
+    .header-logos .govt-text {
+      font-size: 0.7rem;
+      color: #90aacc;
+      text-align: right;
+    }
+
+    /* ─── Navigation Bar ─── */
+    .navbar {
+      background: #fff;
+      border-bottom: 3px solid var(--navy);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .navbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .navbar a {
+      display: inline-block;
+      padding: 13px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--navy);
+      text-decoration: none;
+      border-bottom: 3px solid transparent;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .navbar a:hover,
+    .navbar a.active {
+      border-bottom-color: var(--saffron);
+      background: #f0f4ff;
+      color: var(--navy);
+    }
+
+    /* ─── Breadcrumb ─── */
+    .breadcrumb {
+      background: #eef1f8;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+      font-size: 0.78rem;
+      color: var(--text-mid);
+    }
+    .breadcrumb-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    .breadcrumb a { color: var(--navy); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb span { margin: 0 6px; color: #999; }
+
+    /* ─── Hero Banner ─── */
+    .hero-banner {
+      background: linear-gradient(135deg, #003087 0%, #00509e 50%, #003d7a 100%);
+      padding: 48px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-banner-inner {
+      position: relative;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero-tag {
+      display: inline-block;
+      background: rgba(255,153,51,0.2);
+      border: 1px solid rgba(255,153,51,0.6);
+      color: #ffcc88;
+      font-size: 0.72rem;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 2px;
+      margin-bottom: 18px;
+      font-weight: 600;
+    }
+    .hero-banner h2 {
+      font-family: 'Noto Serif', Georgia, serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      color: #fff;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 14px;
+    }
+    .hero-banner p {
+      font-size: 1rem;
+      color: #b8ccee;
+      max-width: 640px;
+      margin: 0 auto 28px;
+      line-height: 1.75;
+    }
+    .hero-btn {
+      display: inline-block;
+      background: var(--saffron);
+      color: #1a1a1a;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 13px 42px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(255,153,51,0.35);
+    }
+    .hero-btn:hover {
+      background: #e68a00;
+      box-shadow: 0 6px 20px rgba(255,153,51,0.5);
+    }
+
+    /* ─── Main Content ─── */
+    .main-content {
+      flex: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 36px 20px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 30px;
+      align-items: start;
+    }
+
+    /* ─── Stats Strip ─── */
+    .stats-strip {
+      background: var(--navy);
+      padding: 20px;
+      margin-bottom: 28px;
+      border-radius: 4px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      border: 1px solid #1a50a0;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 16px 10px;
+      background: #00409e;
+    }
+    .stat-item:not(:last-child) {
+      border-right: 1px solid #1a50a0;
+    }
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--saffron);
+      font-family: 'Noto Serif', serif;
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-size: 0.72rem;
+      color: #90aacc;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-top: 5px;
+    }
+
+    /* ─── Section cards ─── */
+    .section-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--navy);
+      border-radius: 3px;
+      padding: 24px 26px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .section-card h3 {
+      font-family: 'Noto Serif', Georgia, serif;
+      font-size: 1.1rem;
+      color: var(--navy);
+      font-weight: 700;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-card h3 .icon {
+      width: 22px;
+      height: 22px;
+      background: var(--navy);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      gap: 36px;
-      padding: 60px 24px;
-      max-width: 860px;
-      margin: 0 auto;
-      text-align: center;
+      font-size: 0.7rem;
+      flex-shrink: 0;
     }
-
-    /* badge */
-    .badge {
-      font-size: 0.75rem;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: #3dffaa;
-      background: rgba(61,255,170,0.1);
-      border: 1px solid rgba(61,255,170,0.35);
-      border-radius: 30px;
-      padding: 6px 20px;
+    .section-card p {
+      font-size: 0.92rem;
+      color: var(--text-mid);
+      line-height: 1.85;
     }
-
-    /* hero title */
-    .hero-title {
-      font-size: clamp(2.2rem, 5.5vw, 3.8rem);
-      font-weight: 900;
-      letter-spacing: 2px;
-      line-height: 1.15;
-      color: #fff;
-      text-shadow: 0 0 40px rgba(61,255,150,0.4), 0 2px 10px rgba(0,0,0,0.8);
+    .section-card ul {
+      list-style: none;
+      padding: 0;
     }
-
-    /* tagline */
-    .tagline {
-      font-size: 1.05rem;
-      color: #90e8b8;
-      letter-spacing: 0.4px;
-      margin-top: -18px;
-    }
-
-    /* glass card */
-    .glass-card {
-      background: rgba(0, 30, 15, 0.55);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(61,255,140,0.28);
-      border-radius: 18px;
-      padding: 30px 36px;
-      font-size: 1.03rem;
-      line-height: 1.9;
-      color: #cff0dd;
-      box-shadow: 0 0 36px rgba(61,255,140,0.1), 0 8px 40px rgba(0,0,0,0.5);
-      text-align: left;
-    }
-    .glass-card strong { color: #3dffaa; }
-
-    /* stats row */
-    .stats {
+    .section-card ul li {
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 0.88rem;
+      color: var(--text-mid);
       display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
+      align-items: flex-start;
+      gap: 8px;
     }
-    .stat-box {
-      background: rgba(0,30,15,0.5);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(61,255,140,0.22);
-      border-radius: 14px;
-      padding: 18px 28px;
-      min-width: 150px;
-      box-shadow: 0 0 20px rgba(61,255,140,0.08);
-    }
-    .stat-box .num {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: #3dffaa;
-    }
-    .stat-box .lbl {
-      font-size: 0.78rem;
-      color: #90e8b8;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-top: 4px;
+    .section-card ul li:last-child { border-bottom: none; }
+    .section-card ul li::before {
+      content: '▸';
+      color: var(--saffron);
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      margin-top: 2px;
     }
 
-    /* start button */
-    .btn-start {
-      padding: 18px 72px;
-      font-size: 1.2rem;
+    /* ─── Feature grid ─── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 6px;
+    }
+    .feature-item {
+      background: #f8faff;
+      border: 1px solid #d4dcf0;
+      border-left: 3px solid var(--navy);
+      padding: 12px 14px;
+      border-radius: 2px;
+    }
+    .feature-item .f-title {
+      font-size: 0.82rem;
       font-weight: 700;
-      color: #000;
-      background: linear-gradient(135deg, #00e676, #1de9b6);
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+    .feature-item .f-desc {
+      font-size: 0.76rem;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* ─── Sidebar ─── */
+    .sidebar {}
+
+    .sidebar-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--saffron);
+      border-radius: 3px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+    .sidebar-card-header {
+      background: #fff8f0;
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--navy);
+      text-transform: uppercase;
       letter-spacing: 1px;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-      box-shadow: 0 4px 24px rgba(0,230,118,0.45);
+      border-bottom: 1px solid #f0dfc0;
     }
-    .btn-start:hover {
-      transform: translateY(-7px);
-      box-shadow: 0 14px 44px rgba(0,230,118,0.65), 0 0 70px rgba(29,233,182,0.3);
+    .sidebar-card-body { padding: 14px 16px; }
+    .sidebar-card-body ul { list-style: none; padding: 0; }
+    .sidebar-card-body ul li {
+      padding: 7px 0;
+      border-bottom: 1px dashed #e8e8e8;
+      font-size: 0.8rem;
+      color: var(--text-mid);
     }
-    .btn-start:active {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,230,118,0.5);
+    .sidebar-card-body ul li:last-child { border-bottom: none; }
+    .sidebar-card-body ul li a {
+      color: var(--navy);
+      text-decoration: none;
+    }
+    .sidebar-card-body ul li a:hover { text-decoration: underline; color: var(--saffron); }
+    .sidebar-card-body ul li::before {
+      content: '▸ ';
+      color: var(--saffron);
+      font-size: 0.7rem;
+    }
+
+    .notice-box {
+      background: #fff8e6;
+      border: 1px solid #f5c842;
+      border-left: 4px solid var(--saffron);
+      border-radius: 2px;
+      padding: 13px 15px;
+      font-size: 0.8rem;
+      color: #6b4e00;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+    .notice-box strong { color: #8b3e00; }
+
+    /* ─── Start Prediction CTA ─── */
+    .cta-section {
+      background: linear-gradient(135deg, #003087, #00509e);
+      border: 1px solid #1a50a0;
+      border-radius: 3px;
+      padding: 26px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .cta-section h3 {
+      color: #fff;
+      font-family: 'Noto Serif', serif;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+    }
+    .cta-section p {
+      color: #90aacc;
+      font-size: 0.82rem;
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: var(--saffron);
+      color: #1a1a1a;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 11px 32px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .cta-btn:hover { background: #e68a00; }
+
+    /* ─── Footer ─── */
+    .site-footer {
+      background: #1a1a2e;
+      color: #aaa;
+      padding: 0;
+      margin-top: auto;
+    }
+    .footer-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 36px 20px 24px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 30px;
+      font-size: 0.8rem;
+    }
+    .footer-main h4 {
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #333;
+    }
+    .footer-main p { line-height: 1.8; color: #888; }
+    .footer-main ul { list-style: none; padding: 0; }
+    .footer-main ul li { margin-bottom: 7px; }
+    .footer-main ul li a {
+      color: #999;
+      text-decoration: none;
+      font-size: 0.78rem;
+    }
+    .footer-main ul li a:hover { color: var(--saffron); text-decoration: underline; }
+
+    .footer-bottom {
+      background: #111120;
+      border-top: 1px solid #222;
+      padding: 14px 20px;
+      text-align: center;
+      font-size: 0.72rem;
+      color: #666;
+    }
+    .footer-bottom a { color: #888; text-decoration: none; }
+    .footer-bottom a:hover { color: var(--saffron); }
+    .footer-bottom .separator { margin: 0 8px; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 900px) {
+      .main-content { grid-template-columns: 1fr; }
+      .footer-main  { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .feature-grid { grid-template-columns: 1fr; }
+      .stats-strip  { grid-template-columns: 1fr; }
+      .stat-item:not(:last-child) { border-right: none; border-bottom: 1px solid #1a50a0; }
+      .footer-main  { grid-template-columns: 1fr; }
+      .header-logos { display: none; }
+      .navbar a { padding: 11px 10px; font-size: 0.78rem; }
     }
   </style>
 </head>
 <body>
 
-<!-- ── Animated background canvas ── -->
-<canvas id="bgCanvas"></canvas>
+<!-- Skip to content -->
+<a href="#main-content" class="skip-link">Skip to Main Content</a>
 
-<div class="container">
-
-  <div class="badge">🛰️ AI · Satellite · Geospatial Mining</div>
-
-  <h1 class="hero-title">Manganese Reserve<br>Predictor</h1>
-
-  <p class="tagline">Predict Manganese Reserve Using AI & Satellites</p>
-
-  <div class="glass-card">
-    This application leverages <strong>Artificial Intelligence</strong> and
-    <strong>satellite imagery</strong> to accurately predict
-    <strong>manganese mineral reserves</strong> and identify potential
-    <strong>production shortfalls</strong>. By analysing geological patterns,
-    remote-sensing data, and historical mining records, the predictor delivers
-    actionable insights for industry professionals and policymakers to optimise
-    resource planning and supply-chain management.
-  </div>
-
-  <!-- quick stats -->
-  <div class="stats">
-    <div class="stat-box">
-      <div class="num">94%</div>
-      <div class="lbl">Prediction Accuracy</div>
+<!-- ═══ Top Utility Bar ═══ -->
+<div class="top-bar" role="banner">
+  <div class="top-bar-inner">
+    <div>
+      <strong style="color:#fff;">Government of India</strong>
+      &nbsp;|&nbsp; Ministry of Mines
     </div>
-    <div class="stat-box">
-      <div class="num">120+</div>
-      <div class="lbl">Reserve Sites</div>
-    </div>
-    <div class="stat-box">
-      <div class="num">18</div>
-      <div class="lbl">Satellites Used</div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+      <span class="accessibility">
+        Text Size:
+        <a href="#" aria-label="Decrease text size">A-</a>
+        <a href="#" aria-label="Normal text size">A</a>
+        <a href="#" aria-label="Increase text size">A+</a>
+      </span>
+      <a href="#">हिन्दी</a>
+      <a href="#">Screen Reader</a>
+      <a href="#">Sitemap</a>
+      <a href="#">Contact Us</a>
     </div>
   </div>
-
-  <button class="btn-start" id="startBtn">&#9654;&nbsp; Start Prediction</button>
-
 </div>
 
-<script>
-/* ═══════════════════════════════════════════════
-   CANVAS BACKGROUND
-   Draws:
-    1. Deep-space starfield
-    2. Earth globe (green land + blue ocean, with grid)
-    3. Manganese deposit hot-spots (pulsing orange dots on land)
-    4. Orbiting satellites with solar panels
-    5. Dashed signal beams from satellites to Earth surface
-   ═══════════════════════════════════════════════ */
-const canvas = document.getElementById('bgCanvas');
-const ctx    = canvas.getContext('2d');
+<!-- ═══ Tricolor Stripe ═══ -->
+<div class="tricolor-stripe" aria-hidden="true"></div>
 
-let W, H, cx, cy, R;      // canvas dims, earth centre & radius
+<!-- ═══ Site Header ═══ -->
+<header class="site-header">
+  <div class="header-inner">
 
-/* ── Resize ── */
-function resize() {
-  W = canvas.width  = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-  cx = W * 0.72;            // Earth sits right-of-centre
-  cy = H * 0.52;
-  R  = Math.min(W, H) * 0.28;
-}
-resize();
-window.addEventListener('resize', resize);
+    <!-- Ashoka Emblem (inline SVG) -->
+    <svg class="emblem" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="Ashoka Emblem, Government of India" role="img">
+      <!-- Simplified Ashoka Emblem representation -->
+      <circle cx="50" cy="38" r="30" fill="#C8A951" opacity="0.9"/>
+      <circle cx="50" cy="38" r="26" fill="#003087"/>
+      <circle cx="50" cy="38" r="22" fill="#C8A951" opacity="0.7"/>
+      <!-- Chakra spokes -->
+      <g stroke="#003087" stroke-width="1.5" opacity="0.9">
+        <line x1="50" y1="16" x2="50" y2="60"/>
+        <line x1="28" y1="24" x2="72" y2="52"/>
+        <line x1="28" y1="52" x2="72" y2="24"/>
+        <line x1="18" y1="38" x2="82" y2="38"/>
+        <line x1="24" y1="18" x2="76" y2="58"/>
+        <line x1="24" y1="58" x2="76" y2="18"/>
+        <line x1="34" y1="14" x2="66" y2="62"/>
+        <line x1="34" y1="62" x2="66" y2="14"/>
+      </g>
+      <circle cx="50" cy="38" r="4" fill="#003087"/>
+      <!-- Lions base -->
+      <rect x="22" y="68" width="56" height="7" rx="2" fill="#C8A951"/>
+      <!-- Support text area -->
+      <text x="50" y="94" text-anchor="middle" fill="#C8A951" font-size="8" font-family="serif" font-weight="bold">सत्यमेव जयते</text>
+    </svg>
 
-/* ── Stars ── */
-const STARS = Array.from({length: 280}, () => ({
-  x: Math.random(),
-  y: Math.random(),
-  r: Math.random() * 1.4 + 0.3,
-  a: Math.random()
-}));
+    <div class="header-text">
+      <div class="ministry">भारत सरकार | Government of India</div>
+      <h1>Manganese Reserve Predictor</h1>
+      <div class="subtitle">Ministry of Mines &nbsp;|&nbsp; Geological Survey & Resource Planning Division</div>
+    </div>
 
-/* ── Manganese deposit sites (angle from centre, scaled to globe) ── */
-const DEPOSITS = [
-  { lat:  0.28, lon:  0.18, label: 'S. Africa'   },
-  { lat:  0.38, lon:  0.55, label: 'Australia'   },
-  { lat:  0.20, lon:  0.35, label: 'Gabon'        },
-  { lat:  0.55, lon:  0.30, label: 'Ukraine'      },
-  { lat:  0.60, lon:  0.65, label: 'India'        },
-  { lat:  0.45, lon:  0.80, label: 'China'        },
-  { lat:  0.30, lon: -0.10, label: 'Brazil'       },
-].map(d => ({
-  ...d,
-  // convert normalised lat/lon to 3-D point projected on circle
-  // lat: 0=south, 1=north  lon: 0=left, 1=right
-  px: (d.lon - 0.5) * 1.6,   // -0.8 … +0.8
-  py: (0.5 - d.lat) * 1.6,
-  pulse: Math.random() * Math.PI * 2
-}));
+    <div class="header-logos">
+      <!-- Digital India Badge (inline SVG) -->
+      <svg width="90" height="40" viewBox="0 0 90 40" xmlns="http://www.w3.org/2000/svg" aria-label="Digital India">
+        <rect width="90" height="40" rx="4" fill="#FF9933"/>
+        <text x="45" y="15" text-anchor="middle" fill="#fff" font-size="8" font-family="Arial" font-weight="bold">DIGITAL</text>
+        <text x="45" y="28" text-anchor="middle" fill="#fff" font-size="9" font-family="Arial" font-weight="bold">INDIA</text>
+        <text x="45" y="37" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="5.5" font-family="Arial">Power to Empower</text>
+      </svg>
+      <!-- SIH Badge -->
+      <svg width="90" height="40" viewBox="0 0 90 40" xmlns="http://www.w3.org/2000/svg" aria-label="Smart India Hackathon">
+        <rect width="90" height="40" rx="4" fill="#003087"/>
+        <text x="45" y="14" text-anchor="middle" fill="#FF9933" font-size="7" font-family="Arial" font-weight="bold">SMART INDIA</text>
+        <text x="45" y="25" text-anchor="middle" fill="#fff" font-size="8" font-family="Arial" font-weight="bold">HACKATHON</text>
+        <text x="45" y="36" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="6" font-family="Arial">SIH 2024</text>
+      </svg>
+    </div>
 
-/* ── Satellites ── */
-class Satellite {
-  constructor(orbitR, speed, startAngle, incline) {
-    this.orbitR = orbitR;     // multiple of Earth radius
-    this.angle  = startAngle;
-    this.speed  = speed;
-    this.incline = incline;   // tilt of orbit (0 = equatorial)
-  }
-  update(dt) { this.angle += this.speed * dt; }
-  pos(earthCx, earthCy, earthR) {
-    const r = earthR * this.orbitR;
-    const x = earthCx + Math.cos(this.angle) * r;
-    const y = earthCy + Math.sin(this.angle) * r * this.incline;
-    return { x, y };
-  }
-}
+  </div>
+</header>
 
-const satellites = [
-  new Satellite(1.55, 0.55, 0.0,  0.40),
-  new Satellite(1.75, 0.38, 2.1,  0.60),
-  new Satellite(1.40, 0.70, 4.2,  0.30),
-  new Satellite(1.90, 0.28, 1.1,  0.80),
-];
+<!-- ═══ Navigation Bar ═══ -->
+<nav class="navbar" role="navigation" aria-label="Main Navigation">
+  <div class="navbar-inner">
+    <a href="#" class="active">Home</a>
+    <a href="#">About</a>
+    <a href="#">Mineral Resources</a>
+    <a href="#">Prediction Tool</a>
+    <a href="#">Data &amp; Reports</a>
+    <a href="#">Policies</a>
+    <a href="#">Gallery</a>
+    <a href="#">Contact</a>
+  </div>
+</nav>
 
-/* ── Draw helpers ── */
-function drawStars(t) {
-  STARS.forEach(s => {
-    const twinkle = 0.5 + 0.5 * Math.sin(t * 0.8 + s.a * 10);
-    ctx.beginPath();
-    ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(200,255,220,${0.3 + 0.7 * twinkle})`;
-    ctx.fill();
-  });
-}
+<!-- ═══ Breadcrumb ═══ -->
+<div class="breadcrumb" aria-label="Breadcrumb">
+  <div class="breadcrumb-inner">
+    <a href="#">Home</a>
+    <span>›</span>
+    <a href="#">Mineral Resources</a>
+    <span>›</span>
+    <strong>Manganese Reserve Predictor</strong>
+  </div>
+</div>
 
-function drawEarth(t) {
-  /* ocean */
-  const ocean = ctx.createRadialGradient(cx - R*0.3, cy - R*0.3, R*0.05, cx, cy, R);
-  ocean.addColorStop(0, '#0a3d1e');
-  ocean.addColorStop(0.5, '#052b14');
-  ocean.addColorStop(1, '#01100a');
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, Math.PI * 2);
-  ctx.fillStyle = ocean;
-  ctx.fill();
+<!-- ═══ Hero Banner ═══ -->
+<section class="hero-banner" aria-label="Introduction">
+  <div class="hero-banner-inner">
+    <div class="hero-tag">🛰️ AI · Satellite · Geospatial Analysis</div>
+    <h2>Manganese Reserve<br>Prediction System</h2>
+    <p>
+      An AI-powered national platform under the Ministry of Mines that leverages satellite
+      imagery and geological data to predict manganese mineral reserves and identify
+      production shortfalls across India.
+    </p>
+    <button class="hero-btn" id="startBtn" onclick="alert('Launching Manganese Reserve Predictor…')">
+      ▶ &nbsp;Launch Prediction Tool
+    </button>
+  </div>
+</section>
 
-  /* globe grid lines */
-  ctx.save();
-  ctx.clip();
-  ctx.strokeStyle = 'rgba(0,200,80,0.12)';
-  ctx.lineWidth = 0.8;
-  // latitude rings
-  for (let i = 1; i < 7; i++) {
-    const ry = (i / 7 - 0.5) * R * 1.8;
-    const rx = Math.sqrt(Math.max(0, R*R - ry*ry));
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + ry, rx, rx * 0.22, 0, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  // longitude lines (animating slowly)
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI + t * 0.04;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, R * Math.abs(Math.cos(a)), R, 0, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  ctx.restore();
+<!-- ═══ Main Content + Sidebar ═══ -->
+<main id="main-content" class="main-content">
 
-  /* continent-like patches */
-  const landColor = 'rgba(0,180,80,0.22)';
-  [
-    // [dx_ratio, dy_ratio, rx_ratio, ry_ratio]
-    [-0.38, -0.05, 0.18, 0.28],   // Africa
-    [ 0.10, -0.12, 0.20, 0.22],   // Asia
-    [-0.05,  0.25, 0.14, 0.18],   // S. America hint
-    [ 0.35,  0.10, 0.13, 0.16],   // Australia
-    [-0.28, -0.30, 0.16, 0.12],   // Europe
-    [-0.45,  0.05, 0.10, 0.24],   // N. America
-  ].forEach(([dx,dy,rx,ry]) => {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, R, 0, Math.PI*2);
-    ctx.clip();
-    ctx.beginPath();
-    ctx.ellipse(cx + dx*R, cy + dy*R, rx*R, ry*R, 0, 0, Math.PI*2);
-    ctx.fillStyle = landColor;
-    ctx.fill();
-    ctx.restore();
-  });
+  <!-- ── Left: Primary Content ── -->
+  <div>
 
-  /* globe rim glow */
-  const rim = ctx.createRadialGradient(cx, cy, R * 0.82, cx, cy, R * 1.08);
-  rim.addColorStop(0, 'rgba(0,0,0,0)');
-  rim.addColorStop(0.7, 'rgba(0,180,80,0.08)');
-  rim.addColorStop(1,   'rgba(0,255,120,0.28)');
-  ctx.beginPath();
-  ctx.arc(cx, cy, R * 1.08, 0, Math.PI * 2);
-  ctx.fillStyle = rim;
-  ctx.fill();
+    <!-- Stats Strip -->
+    <div class="stats-strip" role="region" aria-label="Key Statistics">
+      <div class="stat-item">
+        <div class="stat-num">94%</div>
+        <div class="stat-lbl">Prediction Accuracy</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">120+</div>
+        <div class="stat-lbl">Reserve Sites Mapped</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">18</div>
+        <div class="stat-lbl">Satellites Integrated</div>
+      </div>
+    </div>
 
-  /* atmosphere haze */
-  const atm = ctx.createRadialGradient(cx, cy, R*0.9, cx, cy, R*1.18);
-  atm.addColorStop(0,   'rgba(0,255,100,0.06)');
-  atm.addColorStop(0.5, 'rgba(0,180,80,0.04)');
-  atm.addColorStop(1,   'rgba(0,0,0,0)');
-  ctx.beginPath();
-  ctx.arc(cx, cy, R*1.18, 0, Math.PI*2);
-  ctx.fillStyle = atm;
-  ctx.fill();
-}
+    <!-- About the System -->
+    <div class="section-card">
+      <h3>
+        <span class="icon" aria-hidden="true">i</span>
+        About the Prediction System
+      </h3>
+      <p>
+        The <strong>Manganese Reserve Predictor</strong> is a flagship initiative of the
+        Ministry of Mines, Government of India, developed under the <strong>Smart India
+        Hackathon (SIH)</strong> programme. The system utilises <strong>Artificial
+        Intelligence</strong> and multi-spectral <strong>satellite imagery</strong> to
+        accurately estimate manganese mineral reserves and forecast potential
+        production shortfalls.
+      </p>
+      <br>
+      <p>
+        By analysing geological formations, remote-sensing spectral data, and historical
+        mining production records, the predictor delivers actionable insights for
+        government planners, industry professionals, and policymakers to optimise
+        resource planning and supply-chain management at a national scale.
+      </p>
+    </div>
 
-function drawDeposits(t) {
-  DEPOSITS.forEach(d => {
-    // Skip if projected outside visible disc
-    const dist = Math.sqrt(d.px*d.px + d.py*d.py);
-    if (dist >= 0.85) return;
+    <!-- Key Features -->
+    <div class="section-card">
+      <h3>
+        <span class="icon" aria-hidden="true">★</span>
+        Key Features &amp; Capabilities
+      </h3>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <div class="f-title">🛰️ Satellite Data Integration</div>
+          <div class="f-desc">Processes multi-spectral data from 18 active satellites including IRS and Sentinel series.</div>
+        </div>
+        <div class="feature-item">
+          <div class="f-title">🤖 AI-based Forecasting</div>
+          <div class="f-desc">Deep learning models trained on 10+ years of geological survey and production data.</div>
+        </div>
+        <div class="feature-item">
+          <div class="f-title">🗺️ Geospatial Mapping</div>
+          <div class="f-desc">GIS-integrated reserve maps covering all major manganese-bearing zones in India.</div>
+        </div>
+        <div class="feature-item">
+          <div class="f-title">📊 Shortfall Analysis</div>
+          <div class="f-desc">Identifies production gaps and flags critical shortage risk 6–18 months in advance.</div>
+        </div>
+        <div class="feature-item">
+          <div class="f-title">📄 Automated Reporting</div>
+          <div class="f-desc">Generates ministry-ready reports and policy briefs in standard GOI formats.</div>
+        </div>
+        <div class="feature-item">
+          <div class="f-title">🔒 Secure &amp; Compliant</div>
+          <div class="f-desc">Hosted on MeitY-approved cloud infrastructure with data localisation compliance.</div>
+        </div>
+      </div>
+    </div>
 
-    const x = cx + d.px * R;
-    const y = cy + d.py * R;
-    const pulse = 0.5 + 0.5 * Math.sin(t * 2 + d.pulse);
+    <!-- Coverage Areas -->
+    <div class="section-card">
+      <h3>
+        <span class="icon" aria-hidden="true">📍</span>
+        Major Manganese Reserve Zones Covered
+      </h3>
+      <ul>
+        <li>Odisha – Keonjhar, Sundargarh, Jajpur (Largest reserves in India)</li>
+        <li>Maharashtra – Nagpur, Bhandara, Gondia districts</li>
+        <li>Madhya Pradesh – Balaghat (High-grade ore deposits)</li>
+        <li>Andhra Pradesh – Srikakulam, Vizianagaram belt</li>
+        <li>Karnataka – Sandur, Tumkur manganese belt</li>
+        <li>Goa – Bicholim, Sattari and Ponda regions</li>
+        <li>Rajasthan – Banswara and Dungarpur zones</li>
+      </ul>
+    </div>
 
-    // outer pulse ring
-    ctx.beginPath();
-    ctx.arc(x, y, 6 + pulse * 10, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(255,160,0,${0.15 + pulse * 0.25})`;
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
+  </div>
 
-    // inner dot
-    ctx.beginPath();
-    ctx.arc(x, y, 4, 0, Math.PI * 2);
-    const radGrad = ctx.createRadialGradient(x, y, 0, x, y, 4);
-    radGrad.addColorStop(0, '#ffee00');
-    radGrad.addColorStop(1, '#ff6600');
-    ctx.fillStyle = radGrad;
-    ctx.fill();
+  <!-- ── Right: Sidebar ── -->
+  <aside class="sidebar" aria-label="Sidebar">
 
-    // Mn label
-    ctx.fillStyle = `rgba(255,220,100,${0.6 + pulse * 0.4})`;
-    ctx.font = 'bold 9px Segoe UI';
-    ctx.fillText('Mn', x + 6, y - 5);
-  });
-}
+    <!-- CTA -->
+    <div class="cta-section">
+      <h3>Start Prediction</h3>
+      <p>Access the AI-powered prediction module to analyse reserve data for any region.</p>
+      <button class="cta-btn" onclick="alert('Launching Manganese Reserve Predictor…')">
+        ▶ &nbsp;Launch Tool
+      </button>
+    </div>
 
-function drawSatellite(pos, angle) {
-  ctx.save();
-  ctx.translate(pos.x, pos.y);
-  ctx.rotate(angle);
+    <!-- Notice Board -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">📌 Notice Board</div>
+      <div class="sidebar-card-body">
+        <div class="notice-box">
+          <strong>New:</strong> FY 2024-25 reserve data now integrated. System accuracy updated to 94%.
+        </div>
+        <ul>
+          <li><a href="#">Annual Mineral Production Report 2024</a></li>
+          <li><a href="#">National Mineral Policy Guidelines</a></li>
+          <li><a href="#">Satellite Data Update – Q3 2024</a></li>
+          <li><a href="#">Tender: Ground-Truth Survey Odisha</a></li>
+        </ul>
+      </div>
+    </div>
 
-  // body
-  ctx.fillStyle = '#c8e6c9';
-  ctx.fillRect(-8, -5, 16, 10);
+    <!-- Quick Links -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">🔗 Quick Links</div>
+      <div class="sidebar-card-body">
+        <ul>
+          <li><a href="https://mines.gov.in" target="_blank" rel="noopener">Ministry of Mines</a></li>
+          <li><a href="https://www.gsi.gov.in" target="_blank" rel="noopener">Geological Survey of India</a></li>
+          <li><a href="https://ibm.gov.in" target="_blank" rel="noopener">Indian Bureau of Mines</a></li>
+          <li><a href="https://isro.gov.in" target="_blank" rel="noopener">ISRO – Satellite Data</a></li>
+          <li><a href="https://digitalindia.gov.in" target="_blank" rel="noopener">Digital India Initiative</a></li>
+        </ul>
+      </div>
+    </div>
 
-  // solar panels
-  ctx.fillStyle = '#1565c0';
-  ctx.fillRect(-26, -3, 15, 6);
-  ctx.fillRect( 11, -3, 15, 6);
-  ctx.strokeStyle = 'rgba(100,200,255,0.6)';
-  ctx.lineWidth = 0.5;
-  ctx.strokeRect(-26, -3, 15, 6);
-  ctx.strokeRect( 11, -3, 15, 6);
+    <!-- Related Minerals -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">⛏️ Related Minerals</div>
+      <div class="sidebar-card-body">
+        <ul>
+          <li><a href="#">Iron Ore Reserve Tracker</a></li>
+          <li><a href="#">Bauxite Reserve Monitor</a></li>
+          <li><a href="#">Chromite Deposit Analyser</a></li>
+          <li><a href="#">Coal Block Predictor</a></li>
+        </ul>
+      </div>
+    </div>
 
-  // dish
-  ctx.beginPath();
-  ctx.arc(0, -7, 5, Math.PI, Math.PI*2);
-  ctx.strokeStyle = '#aaa';
-  ctx.lineWidth = 1;
-  ctx.stroke();
+  </aside>
+</main>
 
-  ctx.restore();
-}
-
-function drawSignalBeams(t) {
-  satellites.forEach((sat, i) => {
-    const pos   = sat.pos(cx, cy, R);
-    // each satellite targets one deposit (cyclic)
-    const dep   = DEPOSITS[i % DEPOSITS.length];
-    if (Math.sqrt(dep.px*dep.px + dep.py*dep.py) >= 0.85) return;
-
-    const tx = cx + dep.px * R;
-    const ty = cy + dep.py * R;
-
-    // animated dash offset
-    const dash  = (t * 60) % 24;
-    const alpha = 0.3 + 0.2 * Math.sin(t * 2 + i);
-
-    ctx.save();
-    ctx.setLineDash([8, 6]);
-    ctx.lineDashOffset = -dash;
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-    ctx.quadraticCurveTo(cx, cy - R * 0.5, tx, ty);
-    ctx.strokeStyle = `rgba(61,255,170,${alpha})`;
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-    ctx.restore();
-
-    // satellite glow dot
-    ctx.beginPath();
-    ctx.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(61,255,170,${0.6 + 0.4*Math.sin(t*3+i)})`;
-    ctx.fill();
-  });
-}
-
-function drawOrbitTrails() {
-  satellites.forEach(sat => {
-    const r = R * sat.orbitR;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, r, r * sat.incline, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(61,255,140,0.06)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 8]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  });
-}
-
-/* ── Main loop ── */
-let last = 0;
-function frame(ts) {
-  const t  = ts / 1000;
-  const dt = t - last;
-  last = t;
-
-  ctx.clearRect(0, 0, W, H);
-
-  // deep-space gradient bg
-  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H));
-  bg.addColorStop(0,   '#061a0e');
-  bg.addColorStop(0.5, '#030d07');
-  bg.addColorStop(1,   '#000000');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
-
-  drawStars(t);
-  drawOrbitTrails();
-  drawEarth(t);
-  drawDeposits(t);
-
-  satellites.forEach(s => s.update(dt));
-  drawSignalBeams(t);
-  satellites.forEach(s => {
-    const pos = s.pos(cx, cy, R);
-    drawSatellite(pos, s.angle + Math.PI / 2);
-  });
-
-  requestAnimationFrame(frame);
-}
-requestAnimationFrame(frame);
-
-document.getElementById('startBtn').addEventListener('click', () => {
-  alert('Manganese Reserve Predictor starting…');
-});
-</script>
+<!-- ═══ Footer ═══ -->
+<footer class="site-footer" role="contentinfo">
+  <div class="footer-main">
+    <div>
+      <h4>About the Portal</h4>
+      <p>
+        This portal is developed and maintained by the Ministry of Mines,
+        Government of India, as part of the Digital India initiative.
+        Content is owned by the Ministry of Mines.
+      </p>
+      <br>
+      <p style="font-size:0.75rem;color:#666;">
+        Last Updated: July 2024 &nbsp;|&nbsp; Version 2.1.0<br>
+        Best viewed in Chrome, Firefox, Edge (1024×768 or higher)
+      </p>
+    </div>
+    <div>
+      <h4>Ministry</h4>
+      <ul>
+        <li><a href="#">About Ministry</a></li>
+        <li><a href="#">Organisational Setup</a></li>
+        <li><a href="#">Annual Reports</a></li>
+        <li><a href="#">Budget &amp; Expenditure</a></li>
+        <li><a href="#">RTI Information</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Resources</h4>
+      <ul>
+        <li><a href="#">Mineral Maps</a></li>
+        <li><a href="#">Data Downloads</a></li>
+        <li><a href="#">API Documentation</a></li>
+        <li><a href="#">Research Papers</a></li>
+        <li><a href="#">Training Material</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Help &amp; Support</h4>
+      <ul>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">Feedback</a></li>
+        <li><a href="#">Grievance Portal</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Accessibility</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 Ministry of Mines, Government of India. All Rights Reserved.</span>
+    <span class="separator">|</span>
+    <a href="#">Privacy Policy</a>
+    <span class="separator">|</span>
+    <a href="#">Terms &amp; Conditions</a>
+    <span class="separator">|</span>
+    <a href="#">Disclaimer</a>
+    <span class="separator">|</span>
+    <a href="#">Copyright Policy</a>
+    <span class="separator">|</span>
+    <a href="#">Hyperlinking Policy</a>
+  </div>
+</footer>
 
 </body>
 </html>
